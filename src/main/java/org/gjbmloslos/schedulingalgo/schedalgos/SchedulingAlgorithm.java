@@ -1,6 +1,5 @@
 package org.gjbmloslos.schedulingalgo.schedalgos;
 
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
@@ -8,6 +7,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
+import org.gjbmloslos.schedulingalgo.Updator;
 import org.gjbmloslos.schedulingalgo.Process;
 
 public interface SchedulingAlgorithm {

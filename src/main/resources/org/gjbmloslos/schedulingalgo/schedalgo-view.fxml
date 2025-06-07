@@ -193,7 +193,7 @@
             <HBox alignment="CENTER_LEFT" spacing="5.0">
                <children>
                   <Label text="Scheduling Algorithm:" />
-                  <ComboBox fx:id="ScheduleAlgorithmPicker" prefWidth="125.0" />
+                  <ComboBox fx:id="ScheduleAlgorithmPicker" onAction="#setSchedulingAlgorithm" prefWidth="125.0" />
                </children>
             </HBox>
          </children>

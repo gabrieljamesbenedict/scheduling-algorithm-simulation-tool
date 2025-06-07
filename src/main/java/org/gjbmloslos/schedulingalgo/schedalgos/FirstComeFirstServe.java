@@ -1,9 +1,9 @@
 package org.gjbmloslos.schedulingalgo.schedalgos;
 
-import javafx.collections.ObservableList;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
+import org.gjbmloslos.schedulingalgo.Updator;
 import org.gjbmloslos.schedulingalgo.Process;
 import org.gjbmloslos.schedulingalgo.SchedAlgoController;
 
@@ -23,24 +23,34 @@ public class FirstComeFirstServe implements SchedulingAlgorithm {
 
     DecimalFormat df = new DecimalFormat(".###");
 
-
     public FirstComeFirstServe(
-            Process CurrentProcessing,
-            HashSet<Process> ProcessPool,
             Queue<Process> WaitingProcessQueue,
             Queue<Process> CompletedProcessQueue,
             TableView<Process> MasterProcessView,
             Label CurrentProcessText,
             HBox ReadyQueueContainer,
             HBox GanttChartContainer) {
-        this.CurrentProcessing = CurrentProcessing;
-        this.ProcessPool = ProcessPool;
         this.WaitingProcessQueue = WaitingProcessQueue;
         this.CompletedProcessQueue = CompletedProcessQueue;
         this.MasterProcessView = MasterProcessView;
         this.CurrentProcessText = CurrentProcessText;
         this.ReadyQueueContainer = ReadyQueueContainer;
         this.GanttChartContainer = GanttChartContainer;
+
+        CurrentProcessing = null;
+        ProcessPool = new HashSet<>();
+
+            ProcessPool.addAll(MasterProcessView.getItems());
+    }
+
+    @Override
+    public Label createLabelNode(Process p) {
+        return SchedulingAlgorithm.super.createLabelNode(p);
+    }
+
+    @Override
+    public Label createLabelNode(Process p, String s) {
+        return SchedulingAlgorithm.super.createLabelNode(p, s);
     }
 
     @Override
@@ -98,6 +108,7 @@ public class FirstComeFirstServe implements SchedulingAlgorithm {
     @Override
     public void ejectCompletedProcessing () {
         if (CurrentProcessing != null && CurrentProcessing.getRemainingBurstTime() <= 0) {
+            CompletedProcessQueue.add(CurrentProcessing);
             ReadyQueueContainer.getChildren().remove(CurrentProcessing.getLabelRef());
             GanttChartContainer.getChildren().add(createLabelNode(CurrentProcessing, "@"+((double) SchedAlgoController.time/1000)+"s"));
             CurrentProcessText.setText("None");

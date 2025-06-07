@@ -14,6 +14,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import org.gjbmloslos.schedulingalgo.schedalgos.FirstComeFirstServe;
 import org.gjbmloslos.schedulingalgo.schedalgos.SchedulingAlgorithm;
+import org.gjbmloslos.schedulingalgo.schedalgos.ShortestJobFirst;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -25,8 +26,6 @@ public class SchedAlgoController {
     public static int time;
     public static final int timeSpeed = 10;
     public boolean paused;
-
-    DecimalFormat df = new DecimalFormat(".###");
 
     SchedulingAlgorithm schedulingAlgorithm;
 
@@ -56,10 +55,6 @@ public class SchedAlgoController {
     @FXML public HBox GanttChartContainer;
 
     ObservableList<Process> ProcessViewList;
-    HashSet<Process> ProcessPool;
-    Collection<Process> WaitingProcessQueue;
-    Collection<Process> CompletedProcessQueue;
-    Process CurrentProcessing;
 
     ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
     Runnable srtf = new Runnable() {
@@ -88,6 +83,7 @@ public class SchedAlgoController {
                 double maxWT = ProcessViewList.stream().map(Process::getWaitingTime).max(Double::compare).get();
                 double maxTAT = ProcessViewList.stream().map(Process::getTurnAroundTime).max(Double::compare).get();
 
+                DecimalFormat df = new DecimalFormat(".###");
                 AveWaitingTime.setText(Double.toString(Double.parseDouble(df.format(aveWT))));
                 AveTurnAroundTime.setText(Double.toString(Double.parseDouble(df.format(aveTAT))));
                 MinWaitingTime.setText(Double.toString(Double.parseDouble(df.format(minWT))));
@@ -98,6 +94,7 @@ public class SchedAlgoController {
                 TotalTurnAroundTime.setText(Double.toString(Double.parseDouble(df.format(totalTAT))));
 
                 time += timeSpeed;
+
             });
         }
     };
@@ -111,24 +108,19 @@ public class SchedAlgoController {
         CurrentProcessText.setPadding(new Insets(5));
         CurrentProcessText.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, new CornerRadii(10), Insets.EMPTY)));
 
-        WaitingProcessQueue = new ArrayDeque<>();
-        CompletedProcessQueue = new ArrayDeque<>();
-
         JobIDColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("jobID"));
         ArrivalTimeColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("arrivalTime"));
         BurstTimeColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("burstTime"));
         WaitingTimeColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("waitingTime"));
         TurnAroundTimeColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("turnAroundTime"));
 
-
-        ProcessPool = new HashSet<>();
-        generateTable(ProcessAmount);
-
         ScheduleAlgorithmPicker.getItems().addAll(new String[]{
-                "FCFS","SRTF"
+                "FCFS","SJF"
         });
-        ScheduleAlgorithmPicker.getSelectionModel().select(0);
+        ScheduleAlgorithmPicker.getSelectionModel().select("FCFS");
         setSchedulingAlgorithm();
+
+        generateTable(ProcessAmount);
     }
 
     @FXML
@@ -162,29 +154,27 @@ public class SchedAlgoController {
     }
 
     private void generateTable (int am) {
-        ProcessPool.clear();
         ProcessView.getItems().clear();
         ProcessViewList = FXCollections.observableArrayList();
         ProcessView.setItems(ProcessViewList);
         for (int i = 0; i < am; i++) {
             Random rand = new Random();
             //rand.nextInt(15)
-            int at = rand.nextInt(am);
-            int bt = rand.nextInt(10);
+            int at = rand.nextInt(am) + 1;
+            int bt = rand.nextInt(15) + 1;
             Process process = new Process(i, at , bt);
-            ProcessPool.add(process);
             ProcessViewList.add(process);
         }
-
+        setSchedulingAlgorithm();
     }
 
     @FXML
     public void setSchedulingAlgorithm () {
         String s = ScheduleAlgorithmPicker.getSelectionModel().getSelectedItem();
         if (s.equals("FCFS")) {
-            schedulingAlgorithm = new FirstComeFirstServe(CurrentProcessing, ProcessPool, (Queue<Process>) WaitingProcessQueue, (Queue<Process>) CompletedProcessQueue, ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);
-        } else if (s.equals("SRTF")) {
-            //schedulingAlgorithm = new ShortestRemainingTimeFirst(CurrentProcessing, ProcessPool, (Queue<Process>) WaitingProcessQueue, (Queue<Process>) CompletedProcessQueue, ProcessViewList, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);;
+            schedulingAlgorithm = new FirstComeFirstServe(new ArrayDeque<Process>(), new ArrayDeque<Process>(), ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);
+        } else if (s.equals("SJF")) {
+            schedulingAlgorithm = new ShortestJobFirst(new HashSet<Process>(), new HashSet<Process>(), ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);;
         }
     }
 
