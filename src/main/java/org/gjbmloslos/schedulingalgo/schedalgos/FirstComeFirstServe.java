@@ -3,55 +3,31 @@ package org.gjbmloslos.schedulingalgo.schedalgos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
-import org.gjbmloslos.schedulingalgo.Updator;
 import org.gjbmloslos.schedulingalgo.Process;
 import org.gjbmloslos.schedulingalgo.SchedAlgoController;
 
 import java.text.DecimalFormat;
 import java.util.*;
 
-public class FirstComeFirstServe implements SchedulingAlgorithm {
+public class FirstComeFirstServe extends SchedulingAlgorithm {
 
-    Process CurrentProcessing;
-    HashSet<Process> ProcessPool;
-    Queue<Process> WaitingProcessQueue;
-    Queue<Process> CompletedProcessQueue;
-    TableView<Process> MasterProcessView;
-    Label CurrentProcessText;
-    HBox ReadyQueueContainer;
-    HBox GanttChartContainer;
+    ArrayDeque<Process> WaitingProcessQueue;
 
-    DecimalFormat df = new DecimalFormat(".###");
-
-    public FirstComeFirstServe(
-            Queue<Process> WaitingProcessQueue,
-            Queue<Process> CompletedProcessQueue,
-            TableView<Process> MasterProcessView,
-            Label CurrentProcessText,
-            HBox ReadyQueueContainer,
-            HBox GanttChartContainer) {
-        this.WaitingProcessQueue = WaitingProcessQueue;
-        this.CompletedProcessQueue = CompletedProcessQueue;
-        this.MasterProcessView = MasterProcessView;
-        this.CurrentProcessText = CurrentProcessText;
-        this.ReadyQueueContainer = ReadyQueueContainer;
-        this.GanttChartContainer = GanttChartContainer;
-
-        CurrentProcessing = null;
-        ProcessPool = new HashSet<>();
-
-            ProcessPool.addAll(MasterProcessView.getItems());
+    public FirstComeFirstServe(Collection<Process> WaitingProcessPool,
+                               Collection<Process> CompletedProcessPool,
+                               TableView<Process> MasterProcessView,
+                               Label CurrentProcessText,
+                               HBox ReadyQueueContainer,
+                               HBox GanttChartContainer) {
+        super(WaitingProcessPool,
+                CompletedProcessPool,
+                MasterProcessView,
+                CurrentProcessText,
+                ReadyQueueContainer,
+                GanttChartContainer);
+        WaitingProcessQueue = new ArrayDeque<>(WaitingProcessPool);
     }
 
-    @Override
-    public Label createLabelNode(Process p) {
-        return SchedulingAlgorithm.super.createLabelNode(p);
-    }
-
-    @Override
-    public Label createLabelNode(Process p, String s) {
-        return SchedulingAlgorithm.super.createLabelNode(p, s);
-    }
 
     @Override
     public void addProcessToReadyQueue () {
@@ -67,10 +43,6 @@ public class FirstComeFirstServe implements SchedulingAlgorithm {
         }
     }
 
-    public String getCurrentProcessingId () {
-        return (CurrentProcessing == null)? "None" : "Job"+CurrentProcessing.getJobID() + " BurstTimeRemaining: " + Double.parseDouble(df.format(CurrentProcessing.getRemainingBurstTime()));
-    }
-
     @Override
     public void addProcessToCurrentProcessing () {
         if (!WaitingProcessQueue.isEmpty() && CurrentProcessing == null) {
@@ -78,7 +50,8 @@ public class FirstComeFirstServe implements SchedulingAlgorithm {
             CurrentProcessText = CurrentProcessing.getLabelRef();
             WaitingProcessQueue.remove(CurrentProcessing);
             ReadyQueueContainer.getChildren().remove(CurrentProcessing.getLabelRef());
-            System.out.println(WaitingProcessQueue.stream().map(Process::getJobID).toList().toString());
+            GanttChartContainer.getChildren().add(createLabelNode(CurrentProcessing, "@"+((double) SchedAlgoController.time/1000)+"s"));
+            System.out.println(WaitingProcessQueue.stream().map(Process::getProcessID).toList().toString());
         }
     }
 
@@ -108,17 +81,21 @@ public class FirstComeFirstServe implements SchedulingAlgorithm {
     @Override
     public void ejectCompletedProcessing () {
         if (CurrentProcessing != null && CurrentProcessing.getRemainingBurstTime() <= 0) {
-            CompletedProcessQueue.add(CurrentProcessing);
+            CompletedProcessPool.add(CurrentProcessing);
             ReadyQueueContainer.getChildren().remove(CurrentProcessing.getLabelRef());
-            GanttChartContainer.getChildren().add(createLabelNode(CurrentProcessing, "@"+((double) SchedAlgoController.time/1000)+"s"));
             CurrentProcessText.setText("None");
             CurrentProcessing = null;
         }
     }
 
     @Override
-    public TableView<Process> getUpdatedProcesses () {
-        return MasterProcessView;
+    public boolean completedAllProcess() {
+        if (ProcessPool.isEmpty() && WaitingProcessQueue.isEmpty() && CurrentProcessing == null) {
+            GanttChartContainer.getChildren().add(createLabelNode("Done @"+((double) SchedAlgoController.time/1000)+"s"));
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }

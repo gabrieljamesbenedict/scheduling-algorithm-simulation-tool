@@ -14,7 +14,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import org.gjbmloslos.schedulingalgo.schedalgos.FirstComeFirstServe;
 import org.gjbmloslos.schedulingalgo.schedalgos.SchedulingAlgorithm;
-import org.gjbmloslos.schedulingalgo.schedalgos.ShortestJobFirst;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -34,7 +33,7 @@ public class SchedAlgoController {
     @FXML Button PauseButton;
 
     @FXML TableView<Process> ProcessView;
-    @FXML TableColumn<Process, String> JobIDColumn;
+    @FXML TableColumn<Process, String> ProcessIDColumn;
     @FXML TableColumn<Process, String> ArrivalTimeColumn;
     @FXML TableColumn<Process, String> BurstTimeColumn;
     @FXML TableColumn<Process, String> WaitingTimeColumn;
@@ -56,23 +55,26 @@ public class SchedAlgoController {
 
     ObservableList<Process> ProcessViewList;
 
-    ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+    public ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
     Runnable srtf = new Runnable() {
         @Override
         public void run() {
 
-            int timeS = time/1000;
             Platform.runLater(() -> {
 
                 if (paused) return;
 
-                ElapsedTimeText.setText(Integer.toString(time) + "ms");
+                int timeS = time/1000;
+                ElapsedTimeText.setText(Integer.toString(time) + "ms (" + timeS + "s)");
 
                 schedulingAlgorithm.addProcessToReadyQueue();
                 schedulingAlgorithm.addProcessToCurrentProcessing();
                 CurrentProcessText.setText(schedulingAlgorithm.getCurrentProcessingId());
                 schedulingAlgorithm.runCurrentProcessing();
                 schedulingAlgorithm.ejectCompletedProcessing();
+                if (schedulingAlgorithm.completedAllProcess()) {
+                    service.shutdown();
+                }
 
                 double totalWT = ProcessViewList.stream().map(Process::getWaitingTime).reduce((a, b) -> (a + b)).get();
                 double totalTAT = ProcessViewList.stream().map(Process::getTurnAroundTime).reduce((a, b) -> (a + b)).get();
@@ -102,13 +104,15 @@ public class SchedAlgoController {
     @FXML
     public void initialize () {
 
+        SchedAlgo.getSchedAlgoStage().setOnCloseRequest(e -> {service.shutdownNow();});
+
         TableAmountSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE));
 
         CurrentProcessText.setText("None");
         CurrentProcessText.setPadding(new Insets(5));
         CurrentProcessText.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, new CornerRadii(10), Insets.EMPTY)));
 
-        JobIDColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("jobID"));
+        ProcessIDColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("processID"));
         ArrivalTimeColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("arrivalTime"));
         BurstTimeColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("burstTime"));
         WaitingTimeColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("waitingTime"));
@@ -174,7 +178,7 @@ public class SchedAlgoController {
         if (s.equals("FCFS")) {
             schedulingAlgorithm = new FirstComeFirstServe(new ArrayDeque<Process>(), new ArrayDeque<Process>(), ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);
         } else if (s.equals("SJF")) {
-            schedulingAlgorithm = new ShortestJobFirst(new HashSet<Process>(), new HashSet<Process>(), ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);;
+            //schedulingAlgorithm = new ShortestJobFirst(new HashSet<Process>(), new HashSet<Process>(), ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);;
         }
     }
 

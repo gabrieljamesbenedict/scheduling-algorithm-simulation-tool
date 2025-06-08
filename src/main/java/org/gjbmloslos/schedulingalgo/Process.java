@@ -4,30 +4,29 @@ import javafx.scene.control.Label;
 
 public class Process {
 
-    private int jobID;
+    private int processID;
     private double arrivalTime;
     private double burstTime;
     private double waitingTime;
     private double turnAroundTime;
-
     private double remainingBurstTime;
 
     Label labelRef;
 
-    public Process(int jobID, double arrivalTime, double burstTime) {
-        this.jobID = jobID;
+    public Process(int processID, double arrivalTime, double burstTime) {
+        this.processID = processID;
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
 
         remainingBurstTime = burstTime;
     }
 
-    public int getJobID() {
-        return jobID;
+    public int getProcessID() {
+        return processID;
     }
 
-    public void setJobID(int jobID) {
-        this.jobID = jobID;
+    public void setProcessID(int processID) {
+        this.processID = processID;
     }
 
     public double getArrivalTime() {

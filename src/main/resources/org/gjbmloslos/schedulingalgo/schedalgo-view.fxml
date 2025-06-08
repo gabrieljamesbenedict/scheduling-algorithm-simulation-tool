@@ -20,9 +20,9 @@
    <left>
       <VBox spacing="10.0" BorderPane.alignment="CENTER">
          <children>
-            <TableView fx:id="ProcessView" editable="true" prefHeight="500.0" prefWidth="450.0">
+            <TableView fx:id="ProcessView" editable="true" maxHeight="1.7976931348623157E308" prefWidth="450.0">
               <columns>
-                <TableColumn fx:id="JobIDColumn" prefWidth="45.59994679689407" text="JobID" />
+                <TableColumn fx:id="ProcessIDColumn" prefWidth="45.59994679689407" text="JobID" />
                 <TableColumn fx:id="ArrivalTimeColumn" prefWidth="88.79998016357422" text="ArrivalTime" />
                   <TableColumn fx:id="BurstTimeColumn" prefWidth="92.0" text="BurstTime" />
                   <TableColumn fx:id="WaitingTimeColumn" prefWidth="92.0" text="WaitingTime" />
