@@ -2,6 +2,8 @@ package org.gjbmloslos.schedulingalgo;
 
 import javafx.scene.control.ListView;
 
+import static org.gjbmloslos.schedulingalgo.SchedAlgoController.time;
+
 public class SimulationLogger {
 
     static public ListView<String> ActivityLog;
@@ -12,7 +14,7 @@ public class SimulationLogger {
 
     public void log(String s) {
         ActivityLog.getItems().add(
-                s + " @" + SchedAlgoController.time + "ms (" + (int)SchedAlgoController.time/1000 + "s)"
+                s + " @" + time + "ms (" + (float)Math.round((float)time/100)/10 + "s)"
         );
     }
 

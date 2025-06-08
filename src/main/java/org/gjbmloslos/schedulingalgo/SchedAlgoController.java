@@ -29,7 +29,7 @@ import java.util.concurrent.*;
 
 public class SchedAlgoController {
 
-    int ProcessAmount = 5;
+    int ProcessAmount = 10;
     public static Integer time;
     public static final int timeSpeed = 10;
     public boolean paused;
@@ -80,7 +80,7 @@ public class SchedAlgoController {
 
                 if (paused) return;
 
-                int timeS = time/1000;
+                float timeS = (float)Math.round((float)time/100)/10;
                 ElapsedTimeText.setText(Integer.toString(time) + "ms (" + timeS + "s)");
 
                 schedulingAlgorithm.addProcessToReadyQueue();
@@ -89,7 +89,6 @@ public class SchedAlgoController {
                 schedulingAlgorithm.runCurrentProcessing();
                 schedulingAlgorithm.ejectCompletedProcessing();
                 if (schedulingAlgorithm.completedAllProcess()) {
-                    service.shutdown();
                     stop();
                 }
 
@@ -188,7 +187,7 @@ public class SchedAlgoController {
     @FXML
     public void stop () {
         if (!service.isShutdown()) SimLog.log("Ended Simulation Early");
-        service.shutdownNow();
+        service.shutdown();
         PauseButton.setDisable(true);
         EndButton.setDisable(true);
         PrintButton.setDisable(false);
@@ -235,6 +234,12 @@ public class SchedAlgoController {
         PrintWriter writer;
 
         try {
+            File f = new File("results");
+            if (f.mkdir()) {
+                System.out.println("/results already exists in the root directory");
+            } else {
+                System.out.println("Created /results directory in the root directory");
+            }
             String target = "results/"+filename+".txt";
             writer = new PrintWriter(new BufferedWriter(new FileWriter(target)), true);
         } catch (Exception e) {
@@ -275,6 +280,9 @@ public class SchedAlgoController {
         writer.print("\n========== END ==========");
 
         writer.close();
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Result has been saved in /results directory!", ButtonType.OK);
+        alert.show();
 
     }
 
