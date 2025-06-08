@@ -3,8 +3,10 @@ package org.gjbmloslos.schedulingalgo.schedalgos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 import org.gjbmloslos.schedulingalgo.Process;
 import org.gjbmloslos.schedulingalgo.SchedAlgoController;
+import org.gjbmloslos.schedulingalgo.SimulationLogger;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -13,13 +15,15 @@ public class FirstComeFirstServe extends SchedulingAlgorithm {
 
     ArrayDeque<Process> WaitingProcessQueue;
 
-    public FirstComeFirstServe(Collection<Process> WaitingProcessPool,
+    public FirstComeFirstServe(SimulationLogger SimLog,
+                               Collection<Process> WaitingProcessPool,
                                Collection<Process> CompletedProcessPool,
                                TableView<Process> MasterProcessView,
                                Label CurrentProcessText,
                                HBox ReadyQueueContainer,
                                HBox GanttChartContainer) {
-        super(WaitingProcessPool,
+        super(SimLog,
+                WaitingProcessPool,
                 CompletedProcessPool,
                 MasterProcessView,
                 CurrentProcessText,
@@ -36,24 +40,27 @@ public class FirstComeFirstServe extends SchedulingAlgorithm {
             Process p = it.next();
             if (SchedAlgoController.time >= p.getArrivalTime()*1000) {
                 it.remove();
-                p.setLabelRef(createLabelNode(p));
+                p.setLabelRef(createLabelNode(p, Color.LIGHTBLUE));
                 WaitingProcessQueue.add(p);
                 ReadyQueueContainer.getChildren().add(p.getLabelRef());
+                SimLog.log("Added "+ p.toString() +" to ReadyQueue");
             }
         }
     }
+
 
     @Override
     public void addProcessToCurrentProcessing () {
         if (!WaitingProcessQueue.isEmpty() && CurrentProcessing == null) {
             CurrentProcessing = WaitingProcessQueue.remove();
-            CurrentProcessText = CurrentProcessing.getLabelRef();
+            CurrentProcessText.setText(CurrentProcessing.getLabelRef().getText());
             WaitingProcessQueue.remove(CurrentProcessing);
             ReadyQueueContainer.getChildren().remove(CurrentProcessing.getLabelRef());
-            GanttChartContainer.getChildren().add(createLabelNode(CurrentProcessing, "@"+((double) SchedAlgoController.time/1000)+"s"));
-            System.out.println(WaitingProcessQueue.stream().map(Process::getProcessID).toList().toString());
+            GanttChartContainer.getChildren().add(createLabelNode(CurrentProcessing, "@"+((double) SchedAlgoController.time/1000)+"s", Color.LIGHTBLUE));
+            SimLog.log("Started " + CurrentProcessing.toString());
         }
     }
+
 
     @Override
     public void runCurrentProcessing () {
@@ -78,20 +85,26 @@ public class FirstComeFirstServe extends SchedulingAlgorithm {
         }
     }
 
+
     @Override
     public void ejectCompletedProcessing () {
         if (CurrentProcessing != null && CurrentProcessing.getRemainingBurstTime() <= 0) {
             CompletedProcessPool.add(CurrentProcessing);
             ReadyQueueContainer.getChildren().remove(CurrentProcessing.getLabelRef());
             CurrentProcessText.setText("None");
+            SimLog.log("Completed "+ CurrentProcessing.toString());
             CurrentProcessing = null;
         }
     }
 
+
     @Override
     public boolean completedAllProcess() {
         if (ProcessPool.isEmpty() && WaitingProcessQueue.isEmpty() && CurrentProcessing == null) {
-            GanttChartContainer.getChildren().add(createLabelNode("Done @"+((double) SchedAlgoController.time/1000)+"s"));
+            CurrentProcessText = createLabelNode("Done @"+((double) SchedAlgoController.time/1000)+"s", Color.LAWNGREEN);
+            GanttChartContainer.getChildren().add(createLabelNode("Done @"+((double) SchedAlgoController.time/1000)+"s", Color.LAWNGREEN));
+            SimLog.log("All Processes Completed");
+            SimLog.log("Simulation Ended");
             return true;
         } else {
             return false;

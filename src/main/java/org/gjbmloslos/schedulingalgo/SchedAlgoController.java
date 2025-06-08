@@ -14,6 +14,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import org.gjbmloslos.schedulingalgo.schedalgos.FirstComeFirstServe;
 import org.gjbmloslos.schedulingalgo.schedalgos.SchedulingAlgorithm;
+import org.gjbmloslos.schedulingalgo.schedalgos.ShortestJobFirst;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -22,11 +23,12 @@ import java.util.concurrent.*;
 public class SchedAlgoController {
 
     int ProcessAmount = 5;
-    public static int time;
+    public static Integer time;
     public static final int timeSpeed = 10;
     public boolean paused;
 
     SchedulingAlgorithm schedulingAlgorithm;
+    SimulationLogger SimLog;
 
     @FXML Spinner<Integer> TableAmountSpinner;
     @FXML ComboBox<String> ScheduleAlgorithmPicker;
@@ -38,6 +40,8 @@ public class SchedAlgoController {
     @FXML TableColumn<Process, String> BurstTimeColumn;
     @FXML TableColumn<Process, String> WaitingTimeColumn;
     @FXML TableColumn<Process, String> TurnAroundTimeColumn;
+
+    @FXML ListView<String> ActivityLog;
 
     @FXML Label AveWaitingTime;
     @FXML Label AveTurnAroundTime;
@@ -55,7 +59,7 @@ public class SchedAlgoController {
 
     ObservableList<Process> ProcessViewList;
 
-    public ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+    public ScheduledExecutorService service;
     Runnable srtf = new Runnable() {
         @Override
         public void run() {
@@ -103,14 +107,17 @@ public class SchedAlgoController {
 
     @FXML
     public void initialize () {
+        SchedAlgo.getSchedAlgoStage().setOnCloseRequest(e -> {if (service != null)service.shutdownNow();});
 
-        SchedAlgo.getSchedAlgoStage().setOnCloseRequest(e -> {service.shutdownNow();});
+        time = 0;
 
         TableAmountSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE));
 
+        SimLog = new SimulationLogger(ActivityLog);
+
         CurrentProcessText.setText("None");
         CurrentProcessText.setPadding(new Insets(5));
-        CurrentProcessText.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, new CornerRadii(10), Insets.EMPTY)));
+        CurrentProcessText.setBackground(new Background(new BackgroundFill(Color.LIGHTYELLOW, new CornerRadii(10), Insets.EMPTY)));
 
         ProcessIDColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("processID"));
         ArrivalTimeColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("arrivalTime"));
@@ -129,10 +136,10 @@ public class SchedAlgoController {
 
     @FXML
     public void start () throws InterruptedException {
-        time = 0;
+        SimLog.log("Started Simulation with " + ProcessView.getItems().size() + " Processes using " + ScheduleAlgorithmPicker.getSelectionModel().getSelectedItem() + " Algorithm");
+        service = Executors.newSingleThreadScheduledExecutor();
         service.scheduleWithFixedDelay(srtf, 0, timeSpeed, TimeUnit.MILLISECONDS);
         //service.submit(srtf);
-
     }
 
     @FXML
@@ -140,14 +147,18 @@ public class SchedAlgoController {
         if (paused) {
             PauseButton.setText("Pause");
             paused = false;
+            if (service != null) SimLog.log("Paused Simulation");
         } else {
             PauseButton.setText("Resume");
             paused = true;
+            if (service != null) SimLog.log("Resume Simulation");
         }
     }
 
     @FXML
     public void stop () {
+        if (service != null) SimLog.log("Ended Simulation");
+        assert service != null;
         service.shutdownNow();
     }
 
@@ -176,9 +187,9 @@ public class SchedAlgoController {
     public void setSchedulingAlgorithm () {
         String s = ScheduleAlgorithmPicker.getSelectionModel().getSelectedItem();
         if (s.equals("FCFS")) {
-            schedulingAlgorithm = new FirstComeFirstServe(new ArrayDeque<Process>(), new ArrayDeque<Process>(), ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);
+            schedulingAlgorithm = new FirstComeFirstServe(SimLog, new ArrayDeque<Process>(), new ArrayDeque<Process>(), ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);
         } else if (s.equals("SJF")) {
-            //schedulingAlgorithm = new ShortestJobFirst(new HashSet<Process>(), new HashSet<Process>(), ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);;
+            schedulingAlgorithm = new ShortestJobFirst(SimLog, new HashSet<Process>(), new HashSet<Process>(), ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);;
         }
     }
 

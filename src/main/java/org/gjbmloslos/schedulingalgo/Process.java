@@ -76,4 +76,9 @@ public class Process {
     public void setRemainingBurstTime(double remainingBurstTime) {
         this.remainingBurstTime = remainingBurstTime;
     }
+
+    @Override
+    public String toString() {
+        return "Process" + processID;
+    }
 }
