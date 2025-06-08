@@ -21,7 +21,9 @@ import java.io.*;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -228,7 +230,7 @@ public class SchedAlgoController {
     @FXML
     public void printSimulationResults () {
 
-        String filename = "Simulation-Results " + ScheduleAlgorithmPicker.getSelectionModel().getSelectedItem() + " " + LocalDate.now() + " " + LocalTime.now().withNano(0);
+        String filename = "Simulation-Results " + ScheduleAlgorithmPicker.getSelectionModel().getSelectedItem() + " " + LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + " " + LocalTime.now().withNano(0).format(DateTimeFormatter.ISO_LOCAL_TIME).replace(":","-");
         //String debug = "Debug";
         PrintWriter writer;
 
@@ -269,6 +271,8 @@ public class SchedAlgoController {
             String s = logIt.next().toString();
             writer.println(s);
         }
+
+        writer.print("\n========== END ==========");
 
         writer.close();
 

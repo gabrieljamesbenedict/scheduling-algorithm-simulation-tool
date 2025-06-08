@@ -200,10 +200,10 @@
          <children>
             <HBox alignment="CENTER_LEFT" spacing="5.0">
                <children>
-                  <Button fx:id="StartButton" defaultButton="true" mnemonicParsing="false" onAction="#start" text="Start" />
-                  <Button fx:id="PauseButton" disable="true" mnemonicParsing="false" onAction="#pause" text="Pause" />
-                  <Button fx:id="EndButton" disable="true" mnemonicParsing="false" onAction="#stop" text="End" />
-                  <Button fx:id="PrintButton" disable="true" mnemonicParsing="false" onAction="#printSimulationResults" text="Save Result" />
+                  <Button fx:id="StartButton" defaultButton="true" mnemonicParsing="false" onAction="#start" prefWidth="60.0" text="Start" />
+                  <Button fx:id="PauseButton" disable="true" mnemonicParsing="false" onAction="#pause" prefWidth="60.0" text="Pause" />
+                  <Button fx:id="EndButton" disable="true" mnemonicParsing="false" onAction="#stop" prefWidth="60.0" text="End" />
+                  <Button fx:id="PrintButton" disable="true" mnemonicParsing="false" onAction="#printSimulationResults" prefWidth="100.0" text="Save Result" />
                </children>
             </HBox>
             <HBox alignment="CENTER_LEFT" spacing="5.0">
