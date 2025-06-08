@@ -10,27 +10,38 @@ import org.gjbmloslos.schedulingalgo.SimulationLogger;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 
 public class ShortestRemainingTimeFirst extends ShortestJobFirst{
-    public ShortestRemainingTimeFirst(SimulationLogger SimLog, Collection<Process> WaitingProcessPool, Collection<Process> CompletedProcessPool, TableView<Process> MasterProcessView, Label CurrentProcessText, HBox ReadyQueueContainer, HBox GanttChartContainer) {
-        super(SimLog, WaitingProcessPool, CompletedProcessPool, MasterProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);
+
+    public ShortestRemainingTimeFirst(SimulationLogger SimLog,
+                            Collection<Process> WaitingProcessPool,
+                            Collection<Process> CompletedProcessPool,
+                            TableView<Process> MasterProcessView,
+                            Label CurrentProcessText,
+                            HBox ReadyQueueContainer,
+                            HBox GanttChartContainer) {
+        super(SimLog,
+                WaitingProcessPool,
+                CompletedProcessPool,
+                MasterProcessView,
+                CurrentProcessText,
+                ReadyQueueContainer,
+                GanttChartContainer);
+        WaitingProcessSet = new HashSet<>(WaitingProcessPool);
     }
+
 
     @Override
     public void addProcessToCurrentProcessing() {
         if (!WaitingProcessSet.isEmpty()) {
+
             // Get Process in Ready Queue with the lowest BurstTimeRemaining
             Process p = WaitingProcessSet
                     .stream()
                     .sorted(Comparator.comparingDouble(Process::getRemainingBurstTime))
                     .toList()
                     .getFirst();
-            CurrentProcessing = p;
-            CurrentProcessText.setText(CurrentProcessing.getLabelRef().getText());
-            WaitingProcessSet.remove(CurrentProcessing);
-            ReadyQueueContainer.getChildren().remove(CurrentProcessing.getLabelRef());
-            GanttChartContainer.getChildren().add(createLabelNode(CurrentProcessing, "@"+((double) SchedAlgoController.time/1000)+"s", Color.LIGHTBLUE));
-            SimLog.log("Started " + CurrentProcessing.toString());
 
             if (CurrentProcessing == null) {
                 // Add to CurrentProcessing if no processes are happening
@@ -53,7 +64,9 @@ public class ShortestRemainingTimeFirst extends ShortestJobFirst{
                 GanttChartContainer.getChildren().add(createLabelNode(CurrentProcessing, "@"+((double) SchedAlgoController.time/1000)+"s", Color.LIGHTBLUE));
                 SimLog.log("Started " + CurrentProcessing.toString());
             }
+
         }
 
     }
+
 }

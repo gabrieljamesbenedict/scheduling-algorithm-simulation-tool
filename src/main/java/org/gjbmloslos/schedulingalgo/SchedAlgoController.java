@@ -15,6 +15,7 @@ import javafx.scene.paint.Color;
 import org.gjbmloslos.schedulingalgo.schedalgos.FirstComeFirstServe;
 import org.gjbmloslos.schedulingalgo.schedalgos.SchedulingAlgorithm;
 import org.gjbmloslos.schedulingalgo.schedalgos.ShortestJobFirst;
+import org.gjbmloslos.schedulingalgo.schedalgos.ShortestRemainingTimeFirst;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -31,8 +32,11 @@ public class SchedAlgoController {
     SimulationLogger SimLog;
 
     @FXML Spinner<Integer> TableAmountSpinner;
+    @FXML Button GenerateTableButton;
     @FXML ComboBox<String> ScheduleAlgorithmPicker;
+    @FXML Button StartButton;
     @FXML Button PauseButton;
+    @FXML Button EndButton;
 
     @FXML TableView<Process> ProcessView;
     @FXML TableColumn<Process, String> ProcessIDColumn;
@@ -112,6 +116,7 @@ public class SchedAlgoController {
         time = 0;
 
         TableAmountSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE));
+        TableAmountSpinner.getValueFactory().setValue(ProcessAmount);
 
         SimLog = new SimulationLogger(ActivityLog);
 
@@ -126,7 +131,7 @@ public class SchedAlgoController {
         TurnAroundTimeColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("turnAroundTime"));
 
         ScheduleAlgorithmPicker.getItems().addAll(new String[]{
-                "FCFS","SJF"
+                "FCFS","SJF","SRTF"
         });
         ScheduleAlgorithmPicker.getSelectionModel().select("FCFS");
         setSchedulingAlgorithm();
@@ -136,6 +141,12 @@ public class SchedAlgoController {
 
     @FXML
     public void start () throws InterruptedException {
+        PauseButton.setDisable(false);
+        EndButton.setDisable(false);
+        StartButton.setDisable(true);
+        TableAmountSpinner.setDisable(true);
+        GenerateTableButton.setDisable(true);
+        ScheduleAlgorithmPicker.setDisable(true);
         SimLog.log("Started Simulation with " + ProcessView.getItems().size() + " Processes using " + ScheduleAlgorithmPicker.getSelectionModel().getSelectedItem() + " Algorithm");
         service = Executors.newSingleThreadScheduledExecutor();
         service.scheduleWithFixedDelay(srtf, 0, timeSpeed, TimeUnit.MILLISECONDS);
@@ -156,9 +167,11 @@ public class SchedAlgoController {
 
     @FXML
     public void stop () {
-        if (service != null) SimLog.log("Ended Simulation");
-        assert service != null;
-        service.shutdownNow();
+        if (service != null) SimLog.log("Ended Simulation Early");
+        if (service != null) service.shutdownNow();
+        PauseButton.setDisable(true);
+        EndButton.setDisable(true);
+        service = null;
     }
 
     @FXML
@@ -175,7 +188,7 @@ public class SchedAlgoController {
             Random rand = new Random();
             //rand.nextInt(15)
             int at = rand.nextInt(am) + 1;
-            int bt = rand.nextInt(15) + 1;
+            int bt = rand.nextInt(20) + 1;
             Process process = new Process(i, at , bt);
             ProcessViewList.add(process);
         }
@@ -189,6 +202,8 @@ public class SchedAlgoController {
             schedulingAlgorithm = new FirstComeFirstServe(SimLog, new ArrayDeque<Process>(), new ArrayDeque<Process>(), ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);
         } else if (s.equals("SJF")) {
             schedulingAlgorithm = new ShortestJobFirst(SimLog, new HashSet<Process>(), new HashSet<Process>(), ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);;
+        } else if (s.equals("SRTF")) {
+            schedulingAlgorithm = new ShortestRemainingTimeFirst(SimLog, new HashSet<Process>(), new HashSet<Process>(), ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);;
         }
     }
 

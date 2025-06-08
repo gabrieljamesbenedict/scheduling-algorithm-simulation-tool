@@ -200,9 +200,9 @@
          <children>
             <HBox alignment="CENTER_LEFT" spacing="5.0">
                <children>
-                  <Button mnemonicParsing="false" onAction="#start" text="Start" />
-                  <Button fx:id="PauseButton" mnemonicParsing="false" onAction="#pause" text="Pause" />
-                  <Button mnemonicParsing="false" onAction="#stop" text="End" />
+                  <Button fx:id="StartButton" defaultButton="true" mnemonicParsing="false" onAction="#start" text="Start" />
+                  <Button fx:id="PauseButton" disable="true" mnemonicParsing="false" onAction="#pause" text="Pause" />
+                  <Button fx:id="EndButton" disable="true" mnemonicParsing="false" onAction="#stop" text="End" />
                </children>
             </HBox>
             <HBox alignment="CENTER_LEFT" spacing="5.0">
@@ -213,7 +213,7 @@
                         <Insets />
                      </HBox.margin>
                   </Spinner>
-                  <Button mnemonicParsing="false" onAction="#generateTable" text="Generate Table" />
+                  <Button fx:id="GenerateTableButton" mnemonicParsing="false" onAction="#generateTable" text="Generate Table" />
                </children>
             </HBox>
             <HBox alignment="CENTER_LEFT" spacing="5.0">
