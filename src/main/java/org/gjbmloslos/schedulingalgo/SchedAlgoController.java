@@ -17,7 +17,11 @@ import org.gjbmloslos.schedulingalgo.schedalgos.SchedulingAlgorithm;
 import org.gjbmloslos.schedulingalgo.schedalgos.ShortestJobFirst;
 import org.gjbmloslos.schedulingalgo.schedalgos.ShortestRemainingTimeFirst;
 
+import java.io.*;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -27,6 +31,7 @@ public class SchedAlgoController {
     public static Integer time;
     public static final int timeSpeed = 10;
     public boolean paused;
+    HashMap<String, Double> Result;
 
     SchedulingAlgorithm schedulingAlgorithm;
     SimulationLogger SimLog;
@@ -37,6 +42,7 @@ public class SchedAlgoController {
     @FXML Button StartButton;
     @FXML Button PauseButton;
     @FXML Button EndButton;
+    @FXML Button PrintButton;
 
     @FXML TableView<Process> ProcessView;
     @FXML TableColumn<Process, String> ProcessIDColumn;
@@ -82,6 +88,7 @@ public class SchedAlgoController {
                 schedulingAlgorithm.ejectCompletedProcessing();
                 if (schedulingAlgorithm.completedAllProcess()) {
                     service.shutdown();
+                    stop();
                 }
 
                 double totalWT = ProcessViewList.stream().map(Process::getWaitingTime).reduce((a, b) -> (a + b)).get();
@@ -92,6 +99,15 @@ public class SchedAlgoController {
                 double minTAT = ProcessViewList.stream().map(Process::getTurnAroundTime).min(Double::compare).get();
                 double maxWT = ProcessViewList.stream().map(Process::getWaitingTime).max(Double::compare).get();
                 double maxTAT = ProcessViewList.stream().map(Process::getTurnAroundTime).max(Double::compare).get();
+
+                Result.put("totalWT", totalWT);
+                Result.put("totalTAT", totalTAT);
+                Result.put("aveWT", aveWT);
+                Result.put("aveTAT", aveTAT);
+                Result.put("minWT", minWT);
+                Result.put("minTAT", minTAT);
+                Result.put("maxWT", maxWT);
+                Result.put("maxTAT", maxTAT);
 
                 DecimalFormat df = new DecimalFormat(".###");
                 AveWaitingTime.setText(Double.toString(Double.parseDouble(df.format(aveWT))));
@@ -137,6 +153,8 @@ public class SchedAlgoController {
         setSchedulingAlgorithm();
 
         generateTable(ProcessAmount);
+
+        Result = new HashMap<>();
     }
 
     @FXML
@@ -157,21 +175,21 @@ public class SchedAlgoController {
         if (paused) {
             PauseButton.setText("Pause");
             paused = false;
-            if (service != null) SimLog.log("Paused Simulation");
+            SimLog.log("Paused Simulation");
         } else {
             PauseButton.setText("Resume");
             paused = true;
-            if (service != null) SimLog.log("Resume Simulation");
+            SimLog.log("Resume Simulation");
         }
     }
 
     @FXML
     public void stop () {
-        if (service != null) SimLog.log("Ended Simulation Early");
-        if (service != null) service.shutdownNow();
+        if (!service.isShutdown()) SimLog.log("Ended Simulation Early");
+        service.shutdownNow();
         PauseButton.setDisable(true);
         EndButton.setDisable(true);
-        service = null;
+        PrintButton.setDisable(false);
     }
 
     @FXML
@@ -205,6 +223,55 @@ public class SchedAlgoController {
         } else if (s.equals("SRTF")) {
             schedulingAlgorithm = new ShortestRemainingTimeFirst(SimLog, new HashSet<Process>(), new HashSet<Process>(), ProcessView, CurrentProcessText, ReadyQueueContainer, GanttChartContainer);;
         }
+    }
+
+    @FXML
+    public void printSimulationResults () {
+
+        String filename = "Simulation-Results " + ScheduleAlgorithmPicker.getSelectionModel().getSelectedItem() + " " + LocalDate.now() + " " + LocalTime.now().withNano(0);
+        //String debug = "Debug";
+        PrintWriter writer;
+
+        try {
+            String target = "results/"+filename+".txt";
+            writer = new PrintWriter(new BufferedWriter(new FileWriter(target)), true);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        writer.println(filename);
+        writer.println("Process Amount: " + ProcessAmount);
+        writer.println("Algorithm: " + ScheduleAlgorithmPicker.getSelectionModel().getSelectedItem());
+
+        writer.println("\nProcess Pool:");
+        writer.printf("%-20s %-15.2s %-15.2s %-15.2s %-15.2s %n", "Process#", "AT", "BT", "WT", "TAT");
+        Iterator processIt = ProcessViewList.iterator();
+        while (processIt.hasNext()) {
+            Process p = (Process) processIt.next();
+            String pID = p.toString();
+            double at = p.getArrivalTime();
+            double bt = p.getBurstTime();
+            double wt = p.getWaitingTime();
+            double tat = p.getTurnAroundTime();
+            writer.printf("%-20s %-20.3f %-20.3f %-20.3f %-20.3f %n", pID, at, bt, wt, tat);
+        }
+
+        writer.println("\nResults:");
+        writer.printf("%-20s %-20s %-20s %n", "#", "WaitingTime", "TurnAroundTime");
+        writer.printf("%-20s %-20.3f %-20.3f %n", "Mean", Result.get("aveWT"), Result.get("aveTAT"));
+        writer.printf("%-20s %-20.3f %-20.3f %n", "Min", Result.get("minWT"), Result.get("minTAT"));
+        writer.printf("%-20s %-20.3f %-20.3f %n", "Max", Result.get("maxWT"), Result.get("maxTAT"));
+        writer.printf("%-20s %-20.3f %-20.3f %n", "Total", Result.get("totalWT"), Result.get("totalTAT"));
+
+        writer.println("\nActivity Log:");
+        Iterator logIt = ActivityLog.getItems().iterator();
+        while (logIt.hasNext()) {
+            String s = logIt.next().toString();
+            writer.println(s);
+        }
+
+        writer.close();
+
     }
 
 

@@ -21,7 +21,7 @@
    <left>
       <VBox spacing="10.0" BorderPane.alignment="CENTER">
          <children>
-            <TableView fx:id="ProcessView" editable="true" maxHeight="1.7976931348623157E308" prefWidth="450.0">
+            <TableView fx:id="ProcessView" editable="true" maxHeight="1.7976931348623157E308" prefHeight="300.0" prefWidth="450.0">
               <columns>
                 <TableColumn fx:id="ProcessIDColumn" prefWidth="45.59994679689407" text="JobID" />
                 <TableColumn fx:id="ArrivalTimeColumn" prefWidth="88.79998016357422" text="ArrivalTime" />
@@ -203,6 +203,7 @@
                   <Button fx:id="StartButton" defaultButton="true" mnemonicParsing="false" onAction="#start" text="Start" />
                   <Button fx:id="PauseButton" disable="true" mnemonicParsing="false" onAction="#pause" text="Pause" />
                   <Button fx:id="EndButton" disable="true" mnemonicParsing="false" onAction="#stop" text="End" />
+                  <Button fx:id="PrintButton" disable="true" mnemonicParsing="false" onAction="#printSimulationResults" text="Save Result" />
                </children>
             </HBox>
             <HBox alignment="CENTER_LEFT" spacing="5.0">
