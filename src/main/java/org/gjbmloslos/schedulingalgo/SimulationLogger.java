@@ -15,4 +15,10 @@ public class SimulationLogger {
                 s + " @" + SchedAlgoController.time + "ms (" + (int)SchedAlgoController.time/1000 + "s)"
         );
     }
+
+    public void logNoTime(String s) {
+        ActivityLog.getItems().add(
+                s
+        );
+    }
 }

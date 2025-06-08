@@ -42,6 +42,7 @@ public class ShortestJobFirst extends SchedulingAlgorithm{
                 p.setLabelRef(createLabelNode(p, Color.LIGHTBLUE));
                 WaitingProcessSet.add(p);
                 ReadyQueueContainer.getChildren().add(p.getLabelRef());
+                SimLog.log("Added "+ p.toString() +" to ReadyQueue");
             }
         }
     }
@@ -49,33 +50,19 @@ public class ShortestJobFirst extends SchedulingAlgorithm{
 
     @Override
     public void addProcessToCurrentProcessing() {
-        if (!WaitingProcessSet.isEmpty()) {
-
+        if (!WaitingProcessSet.isEmpty() && CurrentProcessing == null) {
             // Get Process in Ready Queue with the lowest BurstTimeRemaining
             Process p = WaitingProcessSet
                     .stream()
                     .sorted(Comparator.comparingDouble(Process::getRemainingBurstTime))
                     .toList()
                     .getFirst();
-
-            if (CurrentProcessing == null) {
-                // Add to CurrentProcessing if no processes are happening
-                CurrentProcessing = p;
-                CurrentProcessText.setText(CurrentProcessing.getLabelRef().getText());
-                WaitingProcessSet.remove(CurrentProcessing);
-                ReadyQueueContainer.getChildren().remove(CurrentProcessing.getLabelRef());
-                GanttChartContainer.getChildren().add(createLabelNode(CurrentProcessing, "@"+((double) SchedAlgoController.time/1000)+"s", Color.LIGHTBLUE));
-            } else if ( p.getRemainingBurstTime() < CurrentProcessing.getRemainingBurstTime() ) {
-                // Add to CurrentProcessing if process has lower burst time than CurrentProcessing
-                WaitingProcessSet.add(CurrentProcessing);
-                CurrentProcessing.setLabelRef(createLabelNode(CurrentProcessing, Color.LIGHTSALMON));
-                ReadyQueueContainer.getChildren().add(CurrentProcessing.getLabelRef());
-                CurrentProcessing = p;
-                CurrentProcessText.setText(CurrentProcessing.getLabelRef().getText());
-                WaitingProcessSet.remove(CurrentProcessing);
-                ReadyQueueContainer.getChildren().remove(CurrentProcessing.getLabelRef());
-                GanttChartContainer.getChildren().add(createLabelNode(CurrentProcessing, "@"+((double) SchedAlgoController.time/1000)+"s", Color.LIGHTBLUE));
-            }
+            CurrentProcessing = p;
+            CurrentProcessText.setText(CurrentProcessing.getLabelRef().getText());
+            WaitingProcessSet.remove(CurrentProcessing);
+            ReadyQueueContainer.getChildren().remove(CurrentProcessing.getLabelRef());
+            GanttChartContainer.getChildren().add(createLabelNode(CurrentProcessing, "@"+((double) SchedAlgoController.time/1000)+"s", Color.LIGHTBLUE));
+            SimLog.log("Started " + CurrentProcessing.toString());
         }
     }
 
@@ -110,6 +97,7 @@ public class ShortestJobFirst extends SchedulingAlgorithm{
             CompletedProcessPool.add(CurrentProcessing);
             ReadyQueueContainer.getChildren().remove(CurrentProcessing.getLabelRef());
             CurrentProcessText.setText("None");
+            SimLog.log("Completed "+ CurrentProcessing.toString());
             CurrentProcessing = null;
         }
     }
@@ -120,6 +108,8 @@ public class ShortestJobFirst extends SchedulingAlgorithm{
         if (ProcessPool.isEmpty() && WaitingProcessSet.isEmpty() && CurrentProcessing == null) {
             CurrentProcessText = createLabelNode("Done @"+((double) SchedAlgoController.time/1000)+"s", Color.LAWNGREEN);
             GanttChartContainer.getChildren().add(createLabelNode("Done @"+((double) SchedAlgoController.time/1000)+"s", Color.LAWNGREEN));
+            SimLog.log("All Processes Completed");
+            SimLog.log("Simulation Ended");
             return true;
         } else {
             return false;

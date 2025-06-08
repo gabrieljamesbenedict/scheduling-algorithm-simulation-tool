@@ -117,7 +117,7 @@ public class SchedAlgoController {
 
         CurrentProcessText.setText("None");
         CurrentProcessText.setPadding(new Insets(5));
-        CurrentProcessText.setBackground(new Background(new BackgroundFill(Color.LIGHTYELLOW, new CornerRadii(10), Insets.EMPTY)));
+        CurrentProcessText.setBackground(new Background(new BackgroundFill(Color.YELLOW, new CornerRadii(10), Insets.EMPTY)));
 
         ProcessIDColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("processID"));
         ArrivalTimeColumn.setCellValueFactory(new PropertyValueFactory<Process, String>("arrivalTime"));
@@ -139,7 +139,6 @@ public class SchedAlgoController {
         SimLog.log("Started Simulation with " + ProcessView.getItems().size() + " Processes using " + ScheduleAlgorithmPicker.getSelectionModel().getSelectedItem() + " Algorithm");
         service = Executors.newSingleThreadScheduledExecutor();
         service.scheduleWithFixedDelay(srtf, 0, timeSpeed, TimeUnit.MILLISECONDS);
-        //service.submit(srtf);
     }
 
     @FXML
